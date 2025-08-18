@@ -1,0 +1,41 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Logs
+logs
+*.log
+logs/*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# dotenv environment variables file
+.env
+
+# Cache
+.cache
+dist/
+build/
+tmp/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Sequelize migrations logs (optional)
+.sequelize-cli
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
