@@ -58,3 +58,30 @@ async function askGemini(context, input) {
         return 'Sorry, I could not process your request. Please try again.';
     }
 }
+
+exports.qaList = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+
+        // Fetch questions & answers for this user with pagination
+        const { count, rows } = await QuestionAnswer.findAndCountAll({
+            where: { userId },
+            order: [["createdAt", "DESC"]],
+            limit,
+            offset,
+        });
+
+        res.json({
+            total: count,
+            page,
+            totalPages: Math.ceil(count / limit),
+            messages: rows,
+        });
+    } catch (err) {
+        console.error("qaList Error:", err.message);
+        res.status(500).json({ error: "Failed to fetch Q&A list" });
+    }
+};

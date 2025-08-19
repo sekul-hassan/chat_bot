@@ -6,7 +6,7 @@ require("dotenv").config();
 
 const { sequelize } = require("./src/models");
 
-const authRoutes = require("./src/routes/autoRoutes");
+const authRoutes = require("./src/routes/authRoutes");
 const documentRoutes = require("./src/routes/documentRoutes");
 const qaRoutes = require("./src/routes/qaRoutes");
 
