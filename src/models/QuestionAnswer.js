@@ -14,12 +14,8 @@ const QuestionAnswer = sequelize.define("QuestionAnswer", {
     },
     answer: {
         type: DataTypes.TEXT,
-        allowNull: true, // initially null, AI fills later
+        allowNull: true,
     },
 });
-
-// Associations
-User.hasMany(QuestionAnswer, { foreignKey: "userId", onDelete: "CASCADE" });
-QuestionAnswer.belongsTo(User, { foreignKey: "userId" });
 
 module.exports = QuestionAnswer;

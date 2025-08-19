@@ -6,7 +6,6 @@ const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const uploadPath = path.join(__dirname, "../uploads");
 
-        // ✅ directory না থাকলে বানাও
         if (!fs.existsSync(uploadPath)) {
             fs.mkdirSync(uploadPath, { recursive: true });
         }
@@ -14,7 +13,7 @@ const storage = multer.diskStorage({
         cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
-        const userEmail = req.user.email.replace(/[@.]/g, "_"); // email কে safe নাম বানাও
+        const userEmail = req.user.email.replace(/[@.]/g, "_");
         const ext = path.extname(file.originalname);
         const uniqueSuffix = Date.now();
 
@@ -24,5 +23,4 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// ❌ এখানে single("document") না করে শুধু multer instance export করো
 module.exports = upload;
