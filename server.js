@@ -9,8 +9,11 @@ const { sequelize } = require("./src/models");
 const authRoutes = require("./src/routes/authRoutes");
 const documentRoutes = require("./src/routes/documentRoutes");
 const qaRoutes = require("./src/routes/qaRoutes");
+const path = require("node:path");
 
 const app = express();
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Middlewares
 app.use(cors());
@@ -24,7 +27,6 @@ app.get("/", (req, res) => {
     res.send("🚀 Doc AI App Backend Running...");
 });
 
-// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/questions", qaRoutes);

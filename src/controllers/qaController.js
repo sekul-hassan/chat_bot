@@ -5,31 +5,42 @@ const { promises: fs } = require("node:fs");
 exports.askQuestion = async (req, res) => {
     try {
         const userId = req.user.id;
-        const {question} = req.body;
+        const { question } = req.body;
 
-        // Get user's uploaded document
-        const document = await Document.findOne({where: {userId}});
+        // Try to get user's uploaded document
+        const document = await Document.findOne({ where: { userId } });
+
+        let answer;
+
         if (!document) {
-            return res.status(404).json({error: "No document found for this user"});
+            // No document uploaded yet
+            answer = "You haven't uploaded any document yet. Please upload one to get contextual answers.";
+        } else {
+            // Read file content
+            const fileContent = await fs.readFile(document.filePath, "utf-8");
+
+            if (!fileContent) {
+                answer = "Your document is empty. Please upload a valid file.";
+            } else {
+                // Call Gemini API with context
+                answer = await askGemini(fileContent, question);
+            }
         }
 
-
-        let fileContent = await fs.readFile(document.filePath, "utf-8");
-
-        const answer = await askGemini(fileContent, question);
-
+        // Save Q&A even if there is no file
         const qa = await QuestionAnswer.create({
             question,
             answer,
             userId,
         });
 
-        res.status(201).json({qa});
+        res.status(201).json({ qa });
     } catch (err) {
         console.error("Gemini API Error:", err.response?.data || err.message);
-        res.status(500).json({error: "Failed to generate answer"});
+        res.status(500).json({ error: "Failed to generate answer" });
     }
 };
+
 
 async function askGemini(context, input) {
     const prompt = `You are a professional assistant for a Facebook page. Use only the following context to generate a concise, accurate, and context-appropriate response to the user's input. If the context specifies how to handle certain inputs (e.g., greetings, questions, or actions), follow those instructions. If the input is not covered by the context, provide a polite, relevant response based on the context's general intent, or ask for clarification if no relevant information is available. Avoid using external knowledge or assumptions beyond the context.
@@ -85,3 +96,32 @@ exports.qaList = async (req, res) => {
         res.status(500).json({ error: "Failed to fetch Q&A list" });
     }
 };
+
+// routes/questionRoutes.js
+exports.analytics =  async (req, res) => {
+    const { QuestionAnswer } = require("../models");
+    const { Sequelize } = require("sequelize");
+    const userId = req.user.id;
+
+    try {
+        const data = await QuestionAnswer.findAll({
+            attributes: [
+                [Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%b"), "month"],
+                [Sequelize.fn("COUNT", Sequelize.col("id")), "count"]
+            ],
+            where: { userId },
+            group: [Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%b")],
+            order: [[Sequelize.fn("MIN", Sequelize.col("createdAt")), "ASC"]]
+        });
+
+        const formatted = data.map((d) => ({
+            month: d.getDataValue("month"),
+            count: Number(d.getDataValue("count")),
+        }));
+
+        res.json(formatted);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch analytics" });
+    }
+}
